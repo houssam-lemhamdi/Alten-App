@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface IProductService {
     public List<ProductDto> getAllProducts();
-    public ProductDto getProductById(Long id);
+    public ProductDto getProductById(Object id) throws Throwable;
     public void createProduct(ProductDto productDto);
-    public ProductDto updateProduct(Long id, ProductDto productDto);
-    public void deleteProduct(Long id);
+    public ProductDto updateProduct(Object id, ProductDto productDto) throws Throwable;
+    public void deleteProduct(Object id) throws Throwable;
 }

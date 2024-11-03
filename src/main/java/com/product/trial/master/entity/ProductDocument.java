@@ -3,19 +3,18 @@ package com.product.trial.master.entity;
 import com.product.trial.master.constants.InventoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "products")
 @Getter
 @Setter
 @ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product extends SqlBaseEntity {
-
+public class ProductDocument extends NoSqlBaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String code;
     private String name;

@@ -46,7 +46,7 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    public ResponseEntity<ProductDto> getProductById(@Parameter(description = "ID of the product to be retrieved") @PathVariable Long id){
+    public ResponseEntity<ProductDto> getProductById(@Parameter(description = "ID of the product to be retrieved") @PathVariable Object id) throws Throwable {
         ProductDto productDto = productService.getProductById(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(productDto);
@@ -72,8 +72,8 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Product not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    public ResponseEntity<ProductDto> updateProduct(@Parameter(description = "ID of the product to be updated") @PathVariable Long id,
-                                                    @Parameter(description = "Updated product details") @RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductDto> updateProduct(@Parameter(description = "ID of the product to be updated") @PathVariable Object id,
+                                                    @Parameter(description = "Updated product details") @RequestBody ProductDto productDto) throws Throwable {
         ProductDto updatedProductDto = productService.updateProduct(id, productDto);
         return ResponseEntity.status(HttpStatus.OK).body(updatedProductDto);
     }
@@ -84,7 +84,7 @@ public class ProductController {
             @ApiResponse(responseCode = "204", description = "Successfully deleted the product."),
             @ApiResponse(responseCode = "404", description = "Product not found.")
     })
-    public ResponseEntity<Void> deleteProduct(@Parameter(description = "ID of the product to be deleted") @PathVariable Long id) {
+    public ResponseEntity<Void> deleteProduct(@Parameter(description = "ID of the product to be deleted") @PathVariable Object id) throws Throwable {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }

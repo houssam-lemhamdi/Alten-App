@@ -2,11 +2,13 @@ package com.product.trial.master.service.Impl;
 
 import com.product.trial.master.dto.ProductDto;
 import com.product.trial.master.entity.Product;
+import com.product.trial.master.entity.ProductDocument;
 import com.product.trial.master.exception.RessourceNotFoundException;
-import com.product.trial.master.mapper.ProductMapper;
+import com.product.trial.master.mapper.NoSqlProductMapper;
+import com.product.trial.master.mapper.SqlProductMapper;
+import com.product.trial.master.repository.Impl.SqlProductRepositoryImpl;
 import com.product.trial.master.repository.ProductRepository;
 import com.product.trial.master.service.IProductService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,50 +20,100 @@ import java.util.List;
 public class ProductService implements IProductService {
 
     private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
+    private final SqlProductMapper sqlProductMapper;
+    private final NoSqlProductMapper noSqlProductMapper;
     @Override
     public List<ProductDto> getAllProducts() {
-        return productMapper.toDtoList(productRepository.findAll());
+        if(productRepository instanceof SqlProductRepositoryImpl){
+            return sqlProductMapper.toDtoList(productRepository.getAllProducts());
+        }
+        else{
+            return noSqlProductMapper.toDtoList(productRepository.getAllProducts());
+        }
     }
 
     @Override
-    public ProductDto getProductById(Long id) {
-        Product product=productRepository.findById(id)
-                .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
-        return productMapper.toDto(product);
+    public ProductDto getProductById(Object id) throws Throwable {
+        if(productRepository instanceof SqlProductRepositoryImpl){
+            Product product= (Product) productRepository.getProductById((Long)id)
+                    .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
+            return sqlProductMapper.toDto(product);
+        }
+        else {
+            ProductDocument product= (ProductDocument) productRepository.getProductById((String)id)
+                    .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
+            return noSqlProductMapper.toDto(product);
+        }
+
     }
 
     @Override
     public void createProduct(ProductDto productDto) {
-        productRepository.save(productMapper.toEntity(productDto));
+        if(productRepository instanceof SqlProductRepositoryImpl){
+            productRepository.createProduct(sqlProductMapper.toEntity(productDto));
+        }
+        else{
+            productRepository.createProduct(noSqlProductMapper.toEntity(productDto));
+        }
     }
 
     @Override
     @Transactional
-    public ProductDto updateProduct(Long id, ProductDto productDto) {
-        Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+    public ProductDto updateProduct(Object id, ProductDto productDto) throws Throwable {
+        if(productRepository instanceof SqlProductRepositoryImpl){
+            Product existingProduct = (Product) productRepository.getProductById((Long)id)
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            updateProductFields(productDto,existingProduct);
+            return sqlProductMapper.toDto((Product) productRepository.updateProduct(existingProduct));
+        }
+        else{
+            ProductDocument existingProductDocument = (ProductDocument) productRepository.getProductById((String)id)
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            updateProductDocumentFields(productDto,existingProductDocument);
+            return noSqlProductMapper.toDto((ProductDocument) productRepository.updateProduct(existingProductDocument));
+        }
 
-        if (productDto.getCode() != null) existingProduct.setCode(productDto.getCode());
-        if (productDto.getName() != null) existingProduct.setName(productDto.getName());
-        if (productDto.getDescription() != null) existingProduct.setDescription(productDto.getDescription());
-        if (productDto.getImage() != null) existingProduct.setImage(productDto.getImage());
-        if (productDto.getCategory() != null) existingProduct.setCategory(productDto.getCategory());
-        if (productDto.getPrice() != 0) existingProduct.setPrice(productDto.getPrice());
-        if (productDto.getQuantity() != 0) existingProduct.setQuantity(productDto.getQuantity());
-        if (productDto.getInternalReference() != null) existingProduct.setInternalReference(productDto.getInternalReference());
-        if (productDto.getShellId() != null) existingProduct.setShellId(productDto.getShellId());
-        if (productDto.getInventoryStatus() != null) existingProduct.setInventoryStatus(productDto.getInventoryStatus());
-        if (productDto.getRating() != 0) existingProduct.setRating(productDto.getRating());
-
-        return productMapper.toDto(productRepository.save(existingProduct));
     }
 
     @Override
     @Transactional
-    public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
-        productRepository.delete(product);
+    public void deleteProduct(Object id) throws Throwable {
+        if (productRepository instanceof SqlProductRepositoryImpl){
+            Product product = (Product) productRepository.getProductById((Long)id)
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            productRepository.deleteProduct(product);
+        }
+        else{
+            ProductDocument productDocument = (ProductDocument) productRepository.getProductById((String)id)
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            productRepository.deleteProduct(productDocument);
+        }
+    }
+
+    private void updateProductFields(ProductDto productDto,Product existingProduct){
+            if (productDto.getCode() != null) existingProduct.setCode(productDto.getCode());
+            if (productDto.getName() != null) existingProduct.setName(productDto.getName());
+            if (productDto.getDescription() != null) existingProduct.setDescription(productDto.getDescription());
+            if (productDto.getImage() != null) existingProduct.setImage(productDto.getImage());
+            if (productDto.getCategory() != null) existingProduct.setCategory(productDto.getCategory());
+            if (productDto.getPrice() != 0) existingProduct.setPrice(productDto.getPrice());
+            if (productDto.getQuantity() != 0) existingProduct.setQuantity(productDto.getQuantity());
+            if (productDto.getInternalReference() != null) existingProduct.setInternalReference(productDto.getInternalReference());
+            if (productDto.getShellId() != null) existingProduct.setShellId(productDto.getShellId());
+            if (productDto.getInventoryStatus() != null) existingProduct.setInventoryStatus(productDto.getInventoryStatus());
+            if (productDto.getRating() != 0) existingProduct.setRating(productDto.getRating());
+    }
+    private void updateProductDocumentFields(ProductDto productDto,ProductDocument existingProductDocument){
+        if (productDto.getCode() != null) existingProductDocument.setCode(productDto.getCode());
+        if (productDto.getName() != null) existingProductDocument.setName(productDto.getName());
+        if (productDto.getDescription() != null) existingProductDocument.setDescription(productDto.getDescription());
+        if (productDto.getImage() != null) existingProductDocument.setImage(productDto.getImage());
+        if (productDto.getCategory() != null) existingProductDocument.setCategory(productDto.getCategory());
+        if (productDto.getPrice() != 0) existingProductDocument.setPrice(productDto.getPrice());
+        if (productDto.getQuantity() != 0) existingProductDocument.setQuantity(productDto.getQuantity());
+        if (productDto.getInternalReference() != null) existingProductDocument.setInternalReference(productDto.getInternalReference());
+        if (productDto.getShellId() != null) existingProductDocument.setShellId(productDto.getShellId());
+        if (productDto.getInventoryStatus() != null) existingProductDocument.setInventoryStatus(productDto.getInventoryStatus());
+        if (productDto.getRating() != 0) existingProductDocument.setRating(productDto.getRating());
     }
 }
