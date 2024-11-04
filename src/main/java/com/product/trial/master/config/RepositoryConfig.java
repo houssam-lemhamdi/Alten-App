@@ -1,5 +1,6 @@
 package com.product.trial.master.config;
 
+import com.product.trial.master.repository.Impl.JsonProductRepositoryImpl;
 import com.product.trial.master.repository.Impl.NoSqlProductRepositoryImpl;
 import com.product.trial.master.repository.Impl.SqlProductRepositoryImpl;
 import com.product.trial.master.repository.ProductRepository;
@@ -13,10 +14,12 @@ public class RepositoryConfig {
     public ProductRepository productRepository(
             @Value("${app.datasource.type}") String datasourceType,
             SqlProductRepositoryImpl sqlRepo,
-            NoSqlProductRepositoryImpl noSqlRepo) {
+            NoSqlProductRepositoryImpl noSqlRepo,
+            JsonProductRepositoryImpl jsonRepo) {
         switch (datasourceType) {
             case "sql": return sqlRepo;
             case "nosql": return noSqlRepo;
+            case "json" : return jsonRepo;
             default: throw new IllegalArgumentException("Unknown datasource type");
         }
     }

@@ -6,6 +6,8 @@ import com.product.trial.master.entity.ProductDocument;
 import com.product.trial.master.exception.RessourceNotFoundException;
 import com.product.trial.master.mapper.NoSqlProductMapper;
 import com.product.trial.master.mapper.SqlProductMapper;
+import com.product.trial.master.repository.Impl.JsonProductRepositoryImpl;
+import com.product.trial.master.repository.Impl.NoSqlProductRepositoryImpl;
 import com.product.trial.master.repository.Impl.SqlProductRepositoryImpl;
 import com.product.trial.master.repository.ProductRepository;
 import com.product.trial.master.service.IProductService;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,24 +30,31 @@ public class ProductService implements IProductService {
         if(productRepository instanceof SqlProductRepositoryImpl){
             return sqlProductMapper.toDtoList(productRepository.getAllProducts());
         }
-        else{
+        else if (productRepository instanceof NoSqlProductRepositoryImpl){
             return noSqlProductMapper.toDtoList(productRepository.getAllProducts());
+        }
+        else {
+            return sqlProductMapper.toDtoList(productRepository.getAllProducts());
         }
     }
 
     @Override
     public ProductDto getProductById(Object id) throws Throwable {
         if(productRepository instanceof SqlProductRepositoryImpl){
-            Product product= (Product) productRepository.getProductById((Long)id)
+            Product product= (Product) productRepository.getProductById(Long.valueOf((String)id))
                     .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
             return sqlProductMapper.toDto(product);
         }
-        else {
+        else if(productRepository instanceof NoSqlProductRepositoryImpl){
             ProductDocument product= (ProductDocument) productRepository.getProductById((String)id)
                     .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
             return noSqlProductMapper.toDto(product);
         }
-
+        else{
+            Product product= (Product) productRepository.getProductById(Long.valueOf((String)id))
+                    .orElseThrow(()->new RessourceNotFoundException("Product","id",id.toString()));
+            return sqlProductMapper.toDto(product);
+        }
     }
 
     @Override
@@ -52,8 +62,11 @@ public class ProductService implements IProductService {
         if(productRepository instanceof SqlProductRepositoryImpl){
             productRepository.createProduct(sqlProductMapper.toEntity(productDto));
         }
-        else{
+        else if (productRepository instanceof NoSqlProductRepositoryImpl){
             productRepository.createProduct(noSqlProductMapper.toEntity(productDto));
+        }
+        else {
+            productRepository.createProduct(sqlProductMapper.toEntity(productDto));
         }
     }
 
@@ -61,32 +74,42 @@ public class ProductService implements IProductService {
     @Transactional
     public ProductDto updateProduct(Object id, ProductDto productDto) throws Throwable {
         if(productRepository instanceof SqlProductRepositoryImpl){
-            Product existingProduct = (Product) productRepository.getProductById((Long)id)
+            Product existingProduct = (Product) productRepository.getProductById(Long.valueOf((String)id))
                     .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
             updateProductFields(productDto,existingProduct);
             return sqlProductMapper.toDto((Product) productRepository.updateProduct(existingProduct));
         }
-        else{
+        else if (productRepository instanceof NoSqlProductRepositoryImpl){
             ProductDocument existingProductDocument = (ProductDocument) productRepository.getProductById((String)id)
                     .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
             updateProductDocumentFields(productDto,existingProductDocument);
             return noSqlProductMapper.toDto((ProductDocument) productRepository.updateProduct(existingProductDocument));
         }
-
+        else {
+            Product product= (Product) productRepository.getProductById(Long.valueOf((String)id))
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            updateProductFields(productDto,product);
+            return sqlProductMapper.toDto((Product) productRepository.updateProduct(product));
+        }
     }
 
     @Override
     @Transactional
     public void deleteProduct(Object id) throws Throwable {
         if (productRepository instanceof SqlProductRepositoryImpl){
-            Product product = (Product) productRepository.getProductById((Long)id)
+            Product product = (Product) productRepository.getProductById(Long.valueOf((String)id))
                     .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
             productRepository.deleteProduct(product);
         }
-        else{
+        else if (productRepository instanceof NoSqlProductRepositoryImpl){
             ProductDocument productDocument = (ProductDocument) productRepository.getProductById((String)id)
                     .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
             productRepository.deleteProduct(productDocument);
+        }
+        else {
+            Product prod = (Product) productRepository.getProductById(Long.valueOf((String)id))
+                    .orElseThrow(() -> new RessourceNotFoundException("Product", "id", id.toString()));
+            productRepository.deleteProduct(prod);
         }
     }
 
