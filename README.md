@@ -56,28 +56,32 @@ Clone the repository
     Username: admin
     Password: 12345
 # Database Configuration
-The application can switch between different data sources: SQL (H2), NoSQL (MongoDB), or JSON file for storing product data. This is controlled via the property app.datasource.type, which accepts the following values:
+    The application supports three types of data sources: 
+    SQL (H2), 
+    NoSQL (MongoDB), 
+    and JSON files. 
+    You can control which data source to use via the app.datasource.type property in the application.properties file.
 
+# Available Data Sources
     sql: Uses H2 database (in-memory).
     nosql: Uses MongoDB.
-    json: handle products in the products.json file.
-# MongoDB Configuration
-    When using MongoDB as the data source, the application will connect to a MongoDB database named 
-        " product-management-db "
-    Ensure that MongoDB is running and accessible before using this data source.
-
-# MongoDB Database: product-management-db
-    The product data will be stored in the products collection within this database.
+    json: Uses a JSON file (products.json) for product data.
 # Configuring Data Source
-    In the application.properties file, set the app.datasource.type property to the desired data source type:
-    Set the datasource type (options: sql, nosql, json)
-    app.datasource.type=nosql # or sql or json
-# Database Initialization and Data
-The application is designed to initialize data from various sources:
+    In the application.properties file, set the app.datasource.type property to specify the data source:
+    app.datasource.type=nosql  # Options: sql, nosql, json
+# MongoDB Configuration
+    When using MongoDB as the data source (app.datasource.type=nosql), the application connects to a MongoDB database named product-management-db. 
+    Ensure that MongoDB is running and accessible before setting the application to use MongoDB.
+- Database: product-management-db 
+- Collection: products
+# Setting Up mongoimport Tool for Data Initialization
+- download mongoimport tool from this url https://fastdl.mongodb.org/tools/db/mongodb-database-tools-windows-x86_64-100.10.0.zip
+- add the bin of mongoimport tool installed to your system path variable
+- run mongoimport --version in the terminal of your ide where project is opened,if it is not recognized then restart your machine.
+- now if you run the app ,the mongo db will be initialized by data inside mongo.json file
 
-    SQL: Automatically uses the data.sql script for database initialization if app.datasource.type=sql.
-    NoSQL: not initialized.
-    JSON: If app.datasource.type=json, the application will read products from the products.json file located in the resources folder.
+# SQL (H2 Database): Automatically loads initial data from the data.sql script if app.datasource.type=sql.
+# JSON File: If app.datasource.type=json, the application reads product data from products.json, which should be located in the src/main/resources folder.
 Example products.json Structure:
 [
 {

@@ -1,0 +1,28 @@
+[
+  {
+    "code": "P001",
+    "name": "Product 1",
+    "description": "Description for Product 1",
+    "image": "image1.png",
+    "category": "Electronics",
+    "price": 99.99,
+    "quantity": 100,
+    "internalReference": "INT001",
+    "shellId": 123,
+    "inventoryStatus": "INSTOCK",
+    "rating": 5
+  },
+  {
+    "code": "P002",
+    "name": "Product 2",
+    "description": "Description for Product 2",
+    "image": "image2.png",
+    "category": "Home Appliances",
+    "price": 199.99,
+    "quantity": 50,
+    "internalReference": "INT002",
+    "shellId": 124,
+    "inventoryStatus": "OUTOFSTOCK",
+    "rating": 4
+  }
+]
